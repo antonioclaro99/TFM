@@ -1,0 +1,29 @@
+version: '3.7'
+
+services:
+  crawler:
+    build:
+      context: ./
+    environment:
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - GROUP_NAME=main_spider_redis
+      - INSTANCE_TYPE=regular 
+    command: scrapy crawl main_spider_redis
+    networks:
+      - my_shared_network_tfm
+
+  crawler_main_db_reader_writer:
+    build:
+      context: ./
+    environment:
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - GROUP_NAME=main_spider_redis
+      - INSTANCE_TYPE=rw
+
+    command: scrapy crawl main_spider_redis
+    networks:
+      - my_shared_network_tfm
+
+networks:
+  my_shared_network_tfm:
+    external: true

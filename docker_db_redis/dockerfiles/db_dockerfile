@@ -1,0 +1,42 @@
+# Dockerfile
+
+# Utiliza la imagen base de SQL Server
+FROM mcr.microsoft.com/mssql/server:2017-CU30-ubuntu-18.04
+
+# Create a config directory
+RUN mkdir -p /usr/config
+WORKDIR /usr/config
+
+# Bundle config source
+COPY . /usr/config
+
+# Grant permissions for to our scripts to be executable
+RUN chmod +x /usr/config/entrypoint.sh
+RUN chmod +x /usr/config/configure-db.sh
+
+# Configura las variables de entorno
+ENV SA_PASSWORD=TuContraseñaSegura123
+ENV ACCEPT_EULA=Y
+ENV MSSQL_DB=my_database
+
+# Expone los puertos
+EXPOSE 1433
+
+# Resto de la configuración (puedes agregar otras configuraciones según tus necesidades)
+ENV MSSQL_PID=Express
+
+ENTRYPOINT ["./entrypoint.sh"]
+
+# Tail the setup logs to trap the process
+CMD ["tail -f /dev/null"]
+
+HEALTHCHECK --interval=15s CMD /opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD -Q "select 1" && grep -q "MSSQL CONFIG COMPLETE" ./config.log
+
+
+
+
+
+
+
+
+

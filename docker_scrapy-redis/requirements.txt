@@ -1,0 +1,6 @@
+scrapy
+sqlalchemy
+pandas
+pyodbc
+twisted
+scrapy-redis

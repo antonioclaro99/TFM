@@ -1,0 +1,11 @@
+{
+    "min_season" : 2024,
+    "max_season" : 2024,
+    "continents_to_include": [],                
+    "countries_to_include": [],
+    "leagues_to_include": [],
+    "clubs_to_include": ["Sevilla FC"],
+    "current_season" : 2024,
+    "incremental": true,
+    "get_photos" : "none"
+  }
