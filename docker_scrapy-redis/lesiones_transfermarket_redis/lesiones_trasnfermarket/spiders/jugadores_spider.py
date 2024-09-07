@@ -171,43 +171,6 @@ class JugadoresSpider(RedisSpider):
         self.session.execute(ins)
         self.session.commit()
 
-    def scrapear_lesiones(self,response):
-        codigo_jugador = response.url.split("/")[6]
-
-        temporada = response.xpath(self.XPATH_TEMPORADA_LESIONES).extract()
-        
-        lesion = response.xpath(self.XPATH_LESION).extract()
-
-        fecha_desde = response.xpath(self.XPATH_DESDE).extract()
-
-        fecha_hasta = response.xpath(self.XPATH_HASTA)
-
-        dias = response.xpath(self.XPATH_DIAS).extract()
-
-        partidos_perdidos = response.xpath(self.XPATH_PARTIDOS_PERDIDOS).extract()
-
-        df_lesiones = pd.DataFrame()
-
-        df_lesiones["temporada"] = ["20"+temp.split("/")[0] for temp in temporada] 
-        df_lesiones["lesion"] = lesion
-        df_lesiones["fecha_desde"] = fecha_desde
-
-        lista_fecha_hasta = []
-        for h in fecha_hasta:
-            hasta = h.xpath("./text()").extract()
-
-            if hasta:
-                lista_fecha_hasta.append(hasta[0])
-            else:
-                lista_fecha_hasta.append("")
-
-        df_lesiones["fecha_hasta"] = lista_fecha_hasta
-        df_lesiones["dias"] = [int(num_dias.split(" ")[0]) for num_dias in dias]
-        df_lesiones["partidos_perdidos"] = [int(num_partidos_perdidos.replace("-","0").replace("?","0")) for num_partidos_perdidos in partidos_perdidos] # revisar HAY INTYERROGACIONES EN ALGUNOS
-        df_lesiones["id_jugador"] = codigo_jugador
-
-        return df_lesiones
-
         
 
     def __init__(self, *args, **kwargs):
@@ -274,6 +237,8 @@ class JugadoresSpider(RedisSpider):
         try:              
 
             if "parse_lesiones" in metodo:
+                codigo_jugador = response.url.split("/")[6]
+
 
                 if metodo == "parse_lesiones_primera_pag":
                     numero_pags_lesiones = response.xpath(self.XPATH_NUMERO_PAGS_LESIONES).extract()
@@ -289,22 +254,24 @@ class JugadoresSpider(RedisSpider):
                     if self.guardar_fotos:
                         enlace_foto_jugador = response.xpath(self.XAPTH_FOTO_JUGADOR).extract()
 
-                        derechos_autor_imagen_jugador = response.xpath(self.XPATH_DERECHOS_AUTOR_FOTO).extract()
+                        if enlace_foto_jugador:
+                            enlace_foto_jugador = enlace_foto_jugador[0]
 
-                        id_jugador = enlace_foto_jugador.split("/")[-1].split("-")[0]
+                            derechos_autor_imagen_jugador = response.xpath(self.XPATH_DERECHOS_AUTOR_FOTO).extract()
 
-                        if "/default" not in enlace_foto_jugador and "." not in str(id_jugador):
+                            id_jugador = enlace_foto_jugador.split("/")[-1].split("-")[0]
 
-                            image_data = self.download_image(enlace_foto_jugador)
-                            if image_data:
-                                if not derechos_autor_imagen_jugador:
-                                    derechos_autor_imagen_jugador = ""
-                                self.save_image_to_db(codigo_jugador, image_data,derechos_autor_imagen_jugador)
-                                print(f"Imagen {codigo_jugador} guardada en la base de datos.")
-                            else:
-                                print(f"Error al descargar la imagen {codigo_jugador}.")
+                            if "/default" not in enlace_foto_jugador and "." not in str(id_jugador):
+                                image_data = self.download_image(enlace_foto_jugador)
+                                if image_data:
+                                    if not derechos_autor_imagen_jugador:
+                                        derechos_autor_imagen_jugador = ""
+                                    self.save_image_to_db(codigo_jugador, image_data,derechos_autor_imagen_jugador[0])
+                                    logging.debug(f"Imagen {codigo_jugador} guardada en la base de datos.")
+                                else:
+                                    logging.debug(f"Error al descargar la imagen {codigo_jugador}.")
 
-                codigo_jugador = response.url.split("/")[6]
+
 
                 temporada = response.xpath(self.XPATH_TEMPORADA_LESIONES).extract()
                 
@@ -380,7 +347,6 @@ class JugadoresSpider(RedisSpider):
                             jugado_contra = competicion.xpath(self.XPATH_JUGADO_CONTRA.format(maximo,maximo-5)).extract()
                             
                         resultado = competicion.xpath(self.XPATH_RESULTADO.format(maximo)).extract()
-                        posicion = competicion.xpath(self.XPATH_POSICION_PARTIDO.format(maximo)).extract()
                 
                         df_estadisticas = pd.DataFrame()
 
@@ -396,7 +362,6 @@ class JugadoresSpider(RedisSpider):
                             df_estadisticas["jugado_para"] = [id_equipo.split('/')[-1].split('.')[0].split("_")[0] for id_equipo in jugado_para]
                             df_estadisticas["jugado_contra"] = [id_equipo.split('/')[-1].split('.')[0].split("_")[0] for id_equipo in jugado_contra]
                             df_estadisticas["resultado"] = resultado
-                            # df_estadisticas["posicion"] = posicion
                             df_estadisticas["temporada"] = codigo_temporada
 
                             df_estadisticas = df_estadisticas.replace("-", "0")

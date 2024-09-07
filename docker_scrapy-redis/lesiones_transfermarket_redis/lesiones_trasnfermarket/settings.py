@@ -59,7 +59,7 @@ LEAGUES_TO_INCLUDE= config.get('leagues_to_include', [])
 CLUBS_TO_INCLUDE=config.get('clubs_to_include', [])
 CURRENT_SEASON=config.get('current_season', 2024)
 INCREMENTAL = config.get('incremental', True)
-GET_PHOTOS = config.get('get_photos', False)
+GET_PHOTOS = config.get('get_photos', True)
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -106,8 +106,7 @@ GET_PHOTOS = config.get('get_photos', False)
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 #   "lesiones_trasnfermarket.pipelines.LesionesTrasnfermarketPipeline": 300,
 ITEM_PIPELINES = {
-       'lesiones_trasnfermarket.pipelines.PipelineClubs': 300
-       
+       'lesiones_trasnfermarket.pipelines.LesionesTrasnfermarketPipeline': 300    
 }
        # 'lesiones_trasnfermarket.pipelines.PipelineRedis': 200
 

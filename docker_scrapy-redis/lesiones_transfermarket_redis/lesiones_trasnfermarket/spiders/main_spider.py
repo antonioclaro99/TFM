@@ -40,10 +40,11 @@ class MainSpider(RedisSpider):
     redis_batch_size = 1
     hostname = os.getenv('HOSTNAME')
 
-    # Max idle time(in seconds) before the spider stops checking redis and shuts down
+    # Tiempo máximo de inactividad de la araña
     max_idle_time = 120
 
     redis_conn = redis.StrictRedis(host='redis', port=6379, db=0)
+
     # Crear la sesión
     engine = create_engine('mssql+pyodbc://scraper:scraper1234A@db-container:1433/tfm_lesiones?driver=ODBC+Driver+17+for+SQL+Server')
     Session = sessionmaker(bind=engine)
@@ -52,7 +53,7 @@ class MainSpider(RedisSpider):
     equipos_a_scrapear_tomados=False
     clubs_to_scrape = None
 
-            # Accede a los parámetros configurados
+    # Accede a los parámetros configurados
     settings = get_project_settings()
     min_season = settings.get('MIN_SEASON', 2010)
     max_season = settings.get('MAX_SEASON', 2024)
@@ -69,12 +70,6 @@ class MainSpider(RedisSpider):
 
     BASE_URL = 'https://www.transfermarkt.es'
 
-    CONINENTES_URLS = ["https://www.transfermarkt.es/wettbewerbe/europa/wettbewerbe?plus=1",
-                      "https://www.transfermarkt.es/wettbewerbe/asien/wettbewerbe?plus=1",
-                      "https://www.transfermarkt.es/wettbewerbe/amerika/wettbewerbe?plus=1",
-                      "https://www.transfermarkt.es/wettbewerbe/afrika/wettbewerbe?plus=1"]
-            
-
     # XPATH PAIS
     XPATH_ENLACES_PAISES = '//map/area/@href'
     XPATH_NOMBRE_PAISES = '//map/area/@title'
@@ -82,7 +77,6 @@ class MainSpider(RedisSpider):
 
 
     XPATH_CELDAS_LIGAS = '//*[@id="yw1"]/table/tbody/tr[position()>1]/td'
-
     # XPATH LIGAS
     XPATH_ENLACES_LIGAS = '//table[@class="inline-table"]//tr[1]/td[2]/a/@href'
     XPATH_NOMBRE_LIGAS = '//table[@class="inline-table"]//tr[1]/td[2]/a/@title'
@@ -97,7 +91,6 @@ class MainSpider(RedisSpider):
     XPATH_VALOR_DE_MERCADO_MEDIO_LIGA = f'{XPATH_CELDAS_LIGAS}[10]/text()'
     XPATH_VALOR_DE_MERCADO_TOTAL_LIGA = f'{XPATH_CELDAS_LIGAS}[11]/text()'
 
-
     # XPATH CLUBS
     XPATH_ENLACES_EQUIPOS = '//*[@id="yw1"]/table/tbody/tr/td[2]/a[1]/@href'
     XPATH_NOMBRE_CLUBS = '//*[@id="yw1"]/table/tbody/tr/td[2]/a[1]/text()'
@@ -108,9 +101,7 @@ class MainSpider(RedisSpider):
     # XPATH JUGADORES
     XAPTH_CELDAS = '//*[@id="yw1"]/table/tbody/tr/td'
 
-    # XPATH_ENLACES_JUGADORES = '//*[@id="yw1"]/table/tbody/tr/td[2]/table/tbody/tr[1]/td[2]/a/@href'
     XPATH_ENLACES_JUGADORES = '//table[@class="inline-table"]//tr[1]/td[2]/a/@href'
-    # XPATH_NOMBRE_JUGADORES = '//*[@id="yw1"]/table/tbody/tr/td[2]/table/tbody/tr[1]/td[2]/a/text()'
     XPATH_FOTO_JUGADORES = '//table[@class="inline-table"]//tr[1]/td[1]/img/@data-src'
     XPATH_NOMBRE_JUGADORES = '//table[@class="inline-table"]//tr[1]/td[2]/a/text()'
     XPATH_FECHA_NACIMIENTO_EDAD = '//*[@id="yw1"]/table/tbody/tr/td[3]/text()'
@@ -127,7 +118,6 @@ class MainSpider(RedisSpider):
 
 
     # XPATH_JUGADOR_TEMPORADAS_ANTERIORES
-
     XPATH_ALTURA_TEMP_ANTERIORES = '//*[@id="yw1"]/table/tbody/tr/td[6]/text()'
     XPATH_PIE_TEMP_ANTERIORES = '//*[@id="yw1"]/table/tbody/tr/td[7]'
     XPATH_FECHA_FICHAJE_TEMP_ANTERIORES = '//*[@id="yw1"]/table/tbody/tr/td[8]'
@@ -148,11 +138,6 @@ class MainSpider(RedisSpider):
                    {"url": "https://www.transfermarkt.es/wettbewerbe/europa/wettbewerbe?plus=1&page=3", "meta": {"metodo": "parse_continente_competiciones"}}]
     
 
-
-
-
-
-
     def __init__(self, *args, **kwargs):
         super(MainSpider, self).__init__(*args, **kwargs)
         print(f"{self.hostname}")
@@ -164,7 +149,7 @@ class MainSpider(RedisSpider):
 
         if self.instance_type=="rw":
                 
-                # queries para borrar datos de tablas no incrementales
+                # Queries para borrar datos de tablas no incrementales
                 
                 delete_query_paises = " TRUNCATE TABLE dbo.paises"
                 delete_query_ligas = " TRUNCATE TABLE dbo.ligas"
@@ -257,7 +242,6 @@ class MainSpider(RedisSpider):
                     item_json = json.dumps(item)
                     self.redis_conn.lpush(self.redis_key, item_json)
     
-
     def spider_closed(self, spider, reason):
         self.session.close()
 
@@ -467,8 +451,6 @@ class MainSpider(RedisSpider):
                 
                 nombre_jugadores = response.xpath(self.XPATH_NOMBRE_JUGADORES).extract()
 
-                foto_jugadores = response.xpath(self.XPATH_FOTO_JUGADORES).extract()
-
                 pais = response.xpath(self.XPATH_PAIS).extract()
 
                 fecha_nacimiento_edad = response.xpath(self.XPATH_FECHA_NACIMIENTO_EDAD).extract()
@@ -479,7 +461,6 @@ class MainSpider(RedisSpider):
                 df_jugador = pd.DataFrame()
 
                 df_jugador["id_jugador"] = [enlace.split("/")[-1] for enlace in enlaces]
-                # df_jugador["url_foto_jugador"] = foto_jugadores
                 df_jugador["nombre"] = [nombre_jugador.replace("\n","").strip() for nombre_jugador in nombre_jugadores if nombre_jugador.strip() != ""]
                 df_jugador["url_jugador"] = enlaces
                 df_jugador["nombre_tfmk"] = [enlace.split("/")[1] for enlace in enlaces]

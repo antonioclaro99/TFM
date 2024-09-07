@@ -9,11 +9,8 @@ from sqlalchemy import create_engine
 import redis
 import os
 
-class LesionesTrasnfermarketPipeline:
-    def process_item(self, item, spider):
-        return item
 
-class PipelineClubs:
+class LesionesTrasnfermarketPipeline:
     def __init__(self):
         self.r = redis.StrictRedis(host='redis', port=6379, db=0)
         self.group_name = os.getenv('GROUP_NAME', 'main_spider_redis')

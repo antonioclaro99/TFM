@@ -7,5 +7,5 @@
     "clubs_to_include": [],
     "current_season" : 2024,
     "incremental": false,
-    "get_photos" : false
+    "get_photos" : true
   }
