@@ -66,7 +66,7 @@ docker-compose up --build
 Para ejecutar los contenedores del scraper main definidos en `docker_scrapy-redis`:
 ```bash
 cd docker_scrapy-redis
-docker compose up --build
+docker compose -f docker-compose.main.yml up --build --scale crawler=3
 ```
 Podemos indicar el número de réplicas que queremos del contenedor crawler, en este caso 3.
 
@@ -102,6 +102,7 @@ Esto abrirá el entorno de JupyterLab en tu navegador, donde podrás explorar y 
 - Asegúrate de que los contenedores de base de datos están corriendo para la ejecución de los contenedores scrapers o de los notebooks.
 - Configura PowerBi para que tome Python en el entorno donde has instalado las librerías.
 - Los contenedores scrapers se detienen automáticamente cuando terminan de ejecutarse.
+- Se puede incluir el comando '-d' al iniciar los contenedores para no verlos en la terminal.
   
 ## Contribuciones
 
